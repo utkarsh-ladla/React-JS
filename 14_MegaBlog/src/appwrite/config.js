@@ -1,11 +1,11 @@
 import conf from "../conf/conf";
-import { Client, Account, ID, Databases, Storage, Query } from "appwrite";
+import { Client, Id, Databases, Storage, Query } from "appwrite";
 
 export class serive{
     client = new Client();
     databases;
     bucket;
-    
+
     constructor(){
         this.client
         .setEndpoint(conf.appwriteUrl) // Your API Endpoint
@@ -13,11 +13,114 @@ export class serive{
     this.databases = new Databases(this.client);
     this.bucket = new Storage(this.client);
     }
-
+// cretePost
     async cretePost({title,slug, content, featuredImage,status, userId}){
+        try {
+            return await this.databases.creteDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                slug,
+                {
+                    title,
+                    content,
+                    featuredImage,
+                    status,
+                    userId,
+                }
+            )
+        } catch(error) {
+            console.log("Appwrite serives :: logout :: error", error);
 
+        }
     }
+// update post
+    async updatePost(slug,{title,content,featuredImage,status}){
+        try {
+            return await this.databases.updateDocument(
+                conf.appwriteDatabaseId, 
+                conf.appwriteCollectionId,
+                slug
+            )
+            {
+                title, content,featuredImage,status
+            }
+        } catch(error) {
+            console.log("Appwrite serives :: logout :: error", error);
 
+        }
+    }
+// delete doc
+    async deletePost(slug){
+        try {
+            await this.databases.deleteDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                slug
+            )
+            return true
+        } catch(error) {
+            console.log("Appwrite serives :: logout :: error", error);
+            return false
+        }
+    }
+// get post
+    async getPost(slug){
+        try {
+            return await this.databases.getDocumnet(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                slug
+            )
+        } catch(error) {
+            console.log("Appwrite serives :: logout :: error", error);
+        }
+    }
+// List post
+    async getPosts(queries = [Query.equal("status", "active")]){
+        try {
+             return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                queries,
+             )
+        } catch(error) {
+            console.log("Appwrite serives :: logout :: error", error);
+            return false;
+        }
+    }
+// file upload services
+    async uploadFile(file) {
+        try {
+            return await this.bucket.createFile(
+                conf.appwriteBucketId,
+                Id.unique(),
+                file
+            )
+        } catch (error) {
+            console.log("Appwrite serives :: logout :: error", error);
+            return false;
+        }
+    }
+//delete file
+    async deleteFile(fileId){
+        try{
+            await this.bucket.deleteFile(
+                conf.appwriteBucketId,
+                fileId
+            )
+            return true
+        } catch(error) {
+            console.log("Appwrite serives :: logout :: error", error);
+            return false;
+        }
+    }
+//get file preview
+    getFilePreview(fileId){
+        return this.bucket.getFilePreview(
+            conf.appwriteBucketId,
+            fileId
+        )
+    }
 }
 
 const service = new Services()
